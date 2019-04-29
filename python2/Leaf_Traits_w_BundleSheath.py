@@ -1,5 +1,4 @@
-
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Mon Nov  5 20:03:05 2018
@@ -20,33 +19,24 @@ import gc
 
 def Trim_Individual_Stack(large_stack, small_stack):
 
-    dims = np.array(large_stack.shape, dtype='float') / \
-                    np.array(small_stack.shape, dtype='float')
-    slice_diff = large_stack.shape[0] - small_stack.shape[0]
-    if slice_diff != 0:
-        print('*** trimming slices ***')
-        large_stack = np.delete(large_stack, np.arange(
-                        large_stack.shape[0]-slice_diff, large_stack.shape[0]), axis=0)
-
+    dims = np.array(binary_stack.shape, dtype='float') / np.array(raw_pred_stack.shape, dtype='float')
     if np.all(dims <= 2):
-        print("*** no trimming necessary ***")
+        print("***no trimming necessary***")
         return large_stack
     else:
-        print("*** trimming rows and/or columns ***")
+        print("***trimming stack***")
         if dims[1] > 2:
             if (large_stack.shape[1]-1)/2 == small_stack.shape[1]:
                 large_stack = np.delete(large_stack, large_stack.shape[1]-1, axis=1)
             else:
                 if (large_stack.shape[1]-2)/2 == small_stack.shape[1]:
-                    large_stack = np.delete(large_stack, np.arange(
-                        large_stack.shape[1]-2, large_stack.shape[1]), axis=1)
+                    large_stack = np.delete(large_stack, np.arange(large_stack.shape[1]-2, large_stack.shape[1]), axis=1)
         if dims[2] > 2:
             if (large_stack.shape[2]-1)/2 == small_stack.shape[2]:
                 large_stack = np.delete(large_stack, large_stack.shape[2]-1, axis=2)
             else:
                 if (large_stack.shape[2]-2)/2 == small_stack.shape[2]:
-                    large_stack = np.delete(large_stack, np.arange(
-                        large_stack.shape[2]-2, large_stack.shape[2]), axis=2)
+                    large_stack = np.delete(large_stack, np.arange(large_stack.shape[2]-2, large_stack.shape[2]), axis=2)
         return large_stack
 
 
@@ -55,12 +45,11 @@ def Trim_Individual_Stack(large_stack, small_stack):
 px_edge = 0.1625 #µm
 vx_volume = px_edge**3
 
-
 #%%
 
 #Load segmented image
-base_folder_name = '/run/media/gtrancourt/microCT_GTR_8tb/Poplar_Dehydration/small_Leaf4_/'
-sample_name = 'DEHYDRATION_small_Leaf4_time_1_'
+base_folder_name = '/run/media/gtrancourt/GTR_Touro/Vitis_Shade_Drought/DONE_Klara/'
+sample_name = 'C_I_12_Strip3_'
 folder_name = 'MLresults/'
 binary_filename = sample_name + 'BINARY-8bit.tif' # sample_name + '_BINARY-8bit-CROPPED.tif'
 raw_ML_prediction_name = sample_name + 'fullstack_prediction.tif'
@@ -70,16 +59,14 @@ filepath = base_folder_name + sample_name + '/'
 #%%
 # Check if the file has already been processed -- Just in case!
 if os.path.isfile(filepath + sample_name + 'RESULTS.txt'):
-    print('')
     print('This file has already been processed!')
-    print('')
     assert False
 
 
 #%%
 # Load the ML segmented stack
 raw_pred_stack = io.imread(filepath + folder_name + raw_ML_prediction_name)
-print((np.unique(raw_pred_stack[100])))
+print(np.unique(raw_pred_stack[100]))
 
 # Trim at the edges -- The ML does a bad job there
 # Here I remove 50 slices at the beginning and the end,
@@ -93,7 +80,6 @@ raw_pred_stack = raw_pred_stack[trim_slices:-trim_slices,:,trim_column_L:-trim_c
 io.imshow(raw_pred_stack[100])
 #%%
 # Define the values for each tissue
-# Validate against the values printed in the previous output
 
 epid_value = 51
 bg_value = 204
@@ -125,11 +111,9 @@ for regions in np.arange(len(props_of_unique_epidermis)):
 # Find the two largest epidermis
 ordered_epidermis = np.argsort(epidermis_area)
 print('The two largest values below should be in the same order of magnitude')
-print((epidermis_area[ordered_epidermis[-4:]]))
-print("")
+print(epidermis_area[ordered_epidermis[-4:]])
 print('The center of the epidermis should be more or less the same on the 1st and 3rd columns')
-print((epidermis_centroid[ordered_epidermis[-4:]]))
-print("")
+print(epidermis_centroid[ordered_epidermis[-4:]])
 
 two_largest_epidermis = (unique_epidermis_volumes == ordered_epidermis[-1]+1) | (unique_epidermis_volumes == ordered_epidermis[-2]+1)
 
@@ -150,7 +134,7 @@ for regions in np.arange(len(props_of_unique_epidermis)):
     epidermis_label[regions] = props_of_unique_epidermis[regions].label
     epidermis_centroid[regions] = props_of_unique_epidermis[regions].centroid
 
-io.imshow(unique_epidermis_volumes[100])
+#io.imshow(unique_epidermis_volumes[100])
 
 # Transform the array to 8-bit: no need for the extra precision as there are only 3 values
 unique_epidermis_volumes = np.array(unique_epidermis_volumes, dtype='uint8')
@@ -355,7 +339,7 @@ for idx in np.arange(large_segmented_stack.shape[0]):
 io.imshow(large_segmented_stack[100])
 print("")
 print('### Validate the values in the stack ###')
-print((np.unique(large_segmented_stack[100])))
+print(np.unique(large_segmented_stack[100]))
 
 # Special tiff saving option for ImageJ compatibility when files larger than
 # 2 Gb. It's like it doesn't recognize something if you don't turn this option
@@ -379,7 +363,7 @@ io.imsave(base_folder_name + sample_name + '/' + sample_name +'SEGMENTED.tif', l
 large_segmented_stack = io.imread(base_folder_name + sample_name + '/' + sample_name +'SEGMENTED.tif')
 
 io.imshow(large_segmented_stack[100])
-print((np.unique(large_segmented_stack[100])))
+print(np.unique(large_segmented_stack[100]))
 
 #large_segmented_stack = np.delete(large_segmented_stack, np.arange(0,500), axis=0)
 
@@ -398,12 +382,7 @@ vein_value = 147
 bs_value = 102
 
 # Find the values of each epidermis: assumes adaxial epidermis is at the top of the image
-epid_vals = [30,60]
-epid_bool = [i in epid_vals for i in large_segmented_stack[200,:,200]]
-epid_indx = [i for i, x in enumerate(epid_bool) if x]
-
-adaxial_epidermis_value = large_segmented_stack[200,epid_indx[0],200]
-# adaxial_epidermis_value = large_segmented_stack[500,:,500][(large_segmented_stack[500,:,500] != bg_value).argmax()]
+adaxial_epidermis_value = large_segmented_stack[100,:,100][(large_segmented_stack[100,:,100] != bg_value).argmax()]
 
 if adaxial_epidermis_value == 30:
     abaxial_epidermis_value = 60
@@ -419,9 +398,10 @@ air_volume = np.sum(large_segmented_stack == ias_value) * vx_volume
 epidermis_abaxial_volume = np.sum(large_segmented_stack == abaxial_epidermis_value) * vx_volume
 epidermis_adaxial_volume = np.sum(large_segmented_stack == adaxial_epidermis_value) * vx_volume
 vein_volume = np.sum(large_segmented_stack == vein_value) * vx_volume
+bundle_sheath_volume = np.sum(large_segmented_stack == bs_value) * vx_volume
 
 print(leaf_volume)
-print((cell_volume + air_volume + epidermis_abaxial_volume + epidermis_adaxial_volume + vein_volume))
+print(cell_volume + air_volume + epidermis_abaxial_volume + epidermis_adaxial_volume + vein_volume)
 
 
 #Measure the thickness of the leaf, the epidermis, and the mesophyll
@@ -430,10 +410,10 @@ mesophyll_thickness = np.sum((large_segmented_stack != bg_value) & (large_segmen
 epidermis_abaxial_thickness = np.sum(large_segmented_stack == abaxial_epidermis_value, axis=1) * px_edge
 epidermis_adaxial_thickness = np.sum(large_segmented_stack == adaxial_epidermis_value, axis=1) * px_edge
 
-print((np.median(leaf_thickness),leaf_thickness.mean(),leaf_thickness.std()))
-print((np.median(mesophyll_thickness),mesophyll_thickness.mean(),mesophyll_thickness.std()))
-print((np.median(epidermis_adaxial_thickness),epidermis_adaxial_thickness.mean(),epidermis_adaxial_thickness.std()))
-print((np.median(epidermis_abaxial_thickness),epidermis_abaxial_thickness.mean(),epidermis_abaxial_thickness.std()))
+print(np.median(leaf_thickness),leaf_thickness.mean(),leaf_thickness.std())
+print(np.median(mesophyll_thickness),mesophyll_thickness.mean(),mesophyll_thickness.std())
+print(np.median(epidermis_adaxial_thickness),epidermis_adaxial_thickness.mean(),epidermis_adaxial_thickness.std())
+print(np.median(epidermis_abaxial_thickness),epidermis_abaxial_thickness.mean(),epidermis_abaxial_thickness.std())
 
 #%%
 # Leaf area
@@ -450,19 +430,19 @@ leaf_area = large_segmented_stack.shape[0] * large_segmented_stack.shape[2] * (p
 ias_vert_faces = marching_cubes_lewiner(large_segmented_stack == ias_value, 0, allow_degenerate=False)#, spacing=(px_edge,px_edge,px_edge))
 ias_SA = mesh_surface_area(ias_vert_faces[0],ias_vert_faces[1])
 true_ias_SA = ias_SA * (px_edge**2)
-print(('IAS surface area: '+str(true_ias_SA)+' µm**2'))
-print(('or '+str(float(true_ias_SA/1000000))+' mm**2'))
+print('IAS surface area: '+str(true_ias_SA)+' µm**2')
+print('or '+str(float(true_ias_SA/1000000))+' mm**2')
 # end Matt's code adaptation
 
 
-
+# Here, if bundle sheaths weren't labelled, then it will assign a value of 0
 try:
-    bs_volume
+    bundle_sheath_volume
 except NameError:
-    bs_volume=0
+    bundle_sheath_volume = 0
 
-print(('Sm: '+str(true_ias_SA/leaf_area)))
-print(('Ames/Vmes: '+str(true_ias_SA/(mesophyll_volume-vein_volume-bs_volume))))
+print('Sm: '+str(true_ias_SA/leaf_area))
+print('Ames/Vmes: '+str(true_ias_SA/(mesophyll_volume-vein_volume-bundle_sheath_volume)))
 
 #%%
 # NOTE ON SA CODE ABOVE
@@ -523,14 +503,14 @@ data_out = {'LeafArea':leaf_area,
             'ADEpidermisVolume':epidermis_adaxial_volume,
             'ABEpidermisVolume':epidermis_abaxial_volume,
             'VeinVolume':vein_volume,
-            'BSVolume':bs_volume,
-            'VeinBSVolume':vein_volume+bs_volume,
+            'BSVolume':bundle_sheath_volume,
+            'VeinBSVolume':vein_volume+bundle_sheath_volume,
             'CellVolume':cell_volume,
             'IASVolume':air_volume,
             'IASSurfaceArea':true_ias_SA,
             '_SLICEStrimmed':trim_slices,
             '_X_trimmed_left':trim_column_L*2,
-            '_X_trimmed_right':trim_column_L*2} #,
+            '_X_trimmed_right':trim_column_L*2}
 #            'IASLargestConnectedVolume':largest_connected_ias_volume,
 #            'IASLargestConnectedSA':largest_connected_ias_SA
 

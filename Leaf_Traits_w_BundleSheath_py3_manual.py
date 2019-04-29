@@ -419,9 +419,10 @@ air_volume = np.sum(large_segmented_stack == ias_value) * vx_volume
 epidermis_abaxial_volume = np.sum(large_segmented_stack == abaxial_epidermis_value) * vx_volume
 epidermis_adaxial_volume = np.sum(large_segmented_stack == adaxial_epidermis_value) * vx_volume
 vein_volume = np.sum(large_segmented_stack == vein_value) * vx_volume
+bundle_sheath_volume = np.sum(large_segmented_stack == bs_value) * vx_volume
 
 print(leaf_volume)
-print((cell_volume + air_volume + epidermis_abaxial_volume + epidermis_adaxial_volume + vein_volume))
+print((cell_volume + air_volume + epidermis_abaxial_volume + epidermis_adaxial_volume + vein_volume + bundle_sheath_volume))
 
 
 #Measure the thickness of the leaf, the epidermis, and the mesophyll
@@ -454,15 +455,14 @@ print(('IAS surface area: '+str(true_ias_SA)+' µm**2'))
 print(('or '+str(float(true_ias_SA/1000000))+' mm**2'))
 # end Matt's code adaptation
 
-
-
+# Here, if bundle sheaths weren't labelled, then it will assign a value of 0
 try:
-    bs_volume
+    bundle_sheath_volume
 except NameError:
-    bs_volume=0
+    bundle_sheath_volume = 0
 
 print(('Sm: '+str(true_ias_SA/leaf_area)))
-print(('Ames/Vmes: '+str(true_ias_SA/(mesophyll_volume-vein_volume-bs_volume))))
+print(('Ames/Vmes: '+str(true_ias_SA/(mesophyll_volume-vein_volume-bundle_sheath_volume))))
 
 #%%
 # NOTE ON SA CODE ABOVE
@@ -523,8 +523,8 @@ data_out = {'LeafArea':leaf_area,
             'ADEpidermisVolume':epidermis_adaxial_volume,
             'ABEpidermisVolume':epidermis_abaxial_volume,
             'VeinVolume':vein_volume,
-            'BSVolume':bs_volume,
-            'VeinBSVolume':vein_volume+bs_volume,
+            'BSVolume':bundle_sheath_volume,
+            'VeinBSVolume':vein_volume+bundle_sheath_volume,
             'CellVolume':cell_volume,
             'IASVolume':air_volume,
             'IASSurfaceArea':true_ias_SA,
